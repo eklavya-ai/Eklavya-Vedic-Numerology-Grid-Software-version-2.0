@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import { PersonDetails } from '../types';
 import { generateYearReport, YearReport } from '../utils/yearReport';
 import {
@@ -262,6 +263,32 @@ export function EklavyaAiChatModal({
   const [finderAnalysis, setFinderAnalysis] = useState<string>('');
   const [isFindingBestYear, setIsFindingBestYear] = useState(false);
 
+  // Gemini API Key management for static hostings (e.g. Netlify)
+  const [customApiKey, setCustomApiKey] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('user_gemini_api_key') || '';
+    }
+    return '';
+  });
+  const [showKeyInput, setShowKeyInput] = useState(false);
+
+  const getEffectiveApiKey = (): string => {
+    const stored = customApiKey.trim();
+    if (stored) return stored;
+    return import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+  };
+
+  const handleSaveApiKey = (key: string) => {
+    setCustomApiKey(key);
+    if (typeof window !== 'undefined') {
+      if (key.trim()) {
+        localStorage.setItem('user_gemini_api_key', key.trim());
+      } else {
+        localStorage.removeItem('user_gemini_api_key');
+      }
+    }
+  };
+
   // Re-generate report when year changes or details change
   useEffect(() => {
     const report = generateYearReport(details, selectedYear);
@@ -354,6 +381,114 @@ export function EklavyaAiChatModal({
     }
   ];
 
+  // Helper functions for client-side Gemini AI calls when on static deployments (e.g., Netlify SPA)
+  const callClientGeminiAi = async (report: YearReport, question: string): Promise<string | null> => {
+    const apiKey = getEffectiveApiKey();
+    if (!apiKey) return null;
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const contextPrompt = `
+You are Eklavya AI, an expert master in Vedic Grid Numerology (3x3 Grid Matrix, Mahadasha, Antardasha, Pratyantardasha, Yogas, and Remedies).
+
+SUPPLIED YEAR REPORT DATA FOR USER (${report.fullName}, DOB: ${report.dob}, Target Year: ${report.selectedYear}, Age: ${report.age}):
+\`\`\`json
+${JSON.stringify(report, null, 2)}
+\`\`\`
+
+USER QUESTION:
+"${question}"
+
+Provide a natural, insightful, date-specific, and accurate Eklavya AI Vedic Numerology response based on the supplied Year Report. Always include exact Pratyantardasha (PD) start and end dates when discussing timing. Include medical disclaimers if asking about health/children.
+`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: contextPrompt
+      });
+
+      return response.text || null;
+    } catch (err) {
+      console.warn('Client-side Gemini AI call failed:', err);
+      return null;
+    }
+  };
+
+  const callClientGeminiCompare = async (year1: number, year2: number): Promise<string | null> => {
+    const apiKey = getEffectiveApiKey();
+    if (!apiKey) return null;
+
+    try {
+      const report1 = generateYearReport(details, year1);
+      const report2 = generateYearReport(details, year2);
+      const ai = new GoogleGenAI({ apiKey });
+
+      const comparePrompt = `
+You are Eklavya AI, an expert master in Vedic Grid Numerology.
+Compare two distinct numerology years for ${details.firstName} ${details.surname}:
+YEAR 1 (${year1}):
+\`\`\`json
+${JSON.stringify(report1, null, 2)}
+\`\`\`
+
+YEAR 2 (${year2}):
+\`\`\`json
+${JSON.stringify(report2, null, 2)}
+\`\`\`
+
+TASK:
+Provide a comprehensive comparative synthesis comparing Year ${year1} vs Year ${year2} across Career, Finance, Property, Relationships, and Strategic Recommendations.
+`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: comparePrompt
+      });
+
+      return response.text || null;
+    } catch (err) {
+      console.warn('Client-side Gemini compare failed:', err);
+      return null;
+    }
+  };
+
+  const callClientGeminiBestYear = async (startYear: number, endYear: number, topic: string): Promise<string | null> => {
+    const apiKey = getEffectiveApiKey();
+    if (!apiKey) return null;
+
+    try {
+      const yearReports: YearReport[] = [];
+      for (let yr = startYear; yr <= endYear; yr++) {
+        yearReports.push(generateYearReport(details, yr));
+      }
+      const ai = new GoogleGenAI({ apiKey });
+
+      const windowPrompt = `
+You are Eklavya AI, an expert master in Vedic Grid Numerology.
+Analyze the 10-year timeline (${startYear} to ${endYear}) for ${details.firstName} ${details.surname} specifically for topic: "${topic}".
+
+10-YEAR REPORTS DATA:
+\`\`\`json
+${JSON.stringify(yearReports, null, 2)}
+\`\`\`
+
+TASK:
+1. Identify the SINGLE BEST YEAR and TOP 3 FAVORABLE WINDOWS between ${startYear} and ${endYear} for "${topic}".
+2. Rank the top years with clear Vedic rationale.
+`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: windowPrompt
+      });
+
+      return response.text || null;
+    } catch (err) {
+      console.warn('Client-side Gemini best year failed:', err);
+      return null;
+    }
+  };
+
   const handleSendQuery = async (queryText?: string) => {
     const textToSend = queryText || inputQuery;
     if (!textToSend.trim() || isAiLoading) return;
@@ -387,8 +522,9 @@ export function EklavyaAiChatModal({
         const data = await res.json();
         aiResponseText = data.answer;
       } else {
-        // Fallback to client-side rule generator if API returns HTML (Netlify SPA route)
-        aiResponseText = generateRuleBasedVedicAnswer(yearReport, textToSend);
+        // Try client-side Gemini AI if server endpoint returns HTML (e.g., Netlify static host)
+        const clientAiText = await callClientGeminiAi(yearReport, textToSend);
+        aiResponseText = clientAiText || generateRuleBasedVedicAnswer(yearReport, textToSend);
       }
 
       const aiMsg: ChatMessage = {
@@ -400,7 +536,8 @@ export function EklavyaAiChatModal({
 
       setMessages(prev => [...prev, aiMsg]);
     } catch (err: any) {
-      const fallbackText = generateRuleBasedVedicAnswer(yearReport, textToSend);
+      const clientAiText = await callClientGeminiAi(yearReport, textToSend);
+      const fallbackText = clientAiText || generateRuleBasedVedicAnswer(yearReport, textToSend);
       const aiMsg: ChatMessage = {
         id: `ai_${Date.now()}`,
         sender: 'ai',
@@ -432,22 +569,28 @@ export function EklavyaAiChatModal({
         const data = await res.json();
         setCompareAnalysis(data.analysis || 'Comparison completed.');
       } else {
-        const report1 = generateYearReport(details, compareYear1);
-        const report2 = generateYearReport(details, compareYear2);
-        setCompareAnalysis(
-          `⚖️ **Comparative Analysis: Year ${compareYear1} vs Year ${compareYear2} for ${details.firstName}**\n\n` +
-          `• **YEAR ${compareYear1} (Age ${report1.age}):**\n` +
-          `  - Mahadasha: ${report1.Mahadasha.planet} (${report1.Mahadasha.number}) | Antardasha: ${report1.Antardasha.planet} (${report1.Antardasha.number})\n` +
-          `  - Antardasha Cycle: ${report1.Antardasha.number} | Active Yogas: ${report1.ActiveYogas.map(y => y.name).join(', ') || 'Balanced'}\n\n` +
-          `• **YEAR ${compareYear2} (Age ${report2.age}):**\n` +
-          `  - Mahadasha: ${report2.Mahadasha.planet} (${report2.Mahadasha.number}) | Antardasha: ${report2.Antardasha.planet} (${report2.Antardasha.number})\n` +
-          `  - Antardasha Cycle: ${report2.Antardasha.number} | Active Yogas: ${report2.ActiveYogas.map(y => y.name).join(', ') || 'Balanced'}\n\n` +
-          `**Comparative Synthesis:**\n` +
-          `Year ${compareYear1} brings the energy of ${report1.Antardasha.planet} focusing on ${report1.Antardasha.number === 5 ? 'commercial expansion & stability' : 'learning & structural alignment'}. Year ${compareYear2} shifts into ${report2.Antardasha.planet} energy, accelerating ${report2.Antardasha.number === 6 ? 'financial & relationship opportunities' : 'focus & major transformations'}.`
-        );
+        const clientCompareText = await callClientGeminiCompare(compareYear1, compareYear2);
+        if (clientCompareText) {
+          setCompareAnalysis(clientCompareText);
+        } else {
+          const report1 = generateYearReport(details, compareYear1);
+          const report2 = generateYearReport(details, compareYear2);
+          setCompareAnalysis(
+            `⚖️ **Comparative Analysis: Year ${compareYear1} vs Year ${compareYear2} for ${details.firstName}**\n\n` +
+            `• **YEAR ${compareYear1} (Age ${report1.age}):**\n` +
+            `  - Mahadasha: ${report1.Mahadasha.planet} (${report1.Mahadasha.number}) | Antardasha: ${report1.Antardasha.planet} (${report1.Antardasha.number})\n` +
+            `  - Antardasha Cycle: ${report1.Antardasha.number} | Active Yogas: ${report1.ActiveYogas.map(y => y.name).join(', ') || 'Balanced'}\n\n` +
+            `• **YEAR ${compareYear2} (Age ${report2.age}):**\n` +
+            `  - Mahadasha: ${report2.Mahadasha.planet} (${report2.Mahadasha.number}) | Antardasha: ${report2.Antardasha.planet} (${report2.Antardasha.number})\n` +
+            `  - Antardasha Cycle: ${report2.Antardasha.number} | Active Yogas: ${report2.ActiveYogas.map(y => y.name).join(', ') || 'Balanced'}\n\n` +
+            `**Comparative Synthesis:**\n` +
+            `Year ${compareYear1} brings the energy of ${report1.Antardasha.planet} focusing on ${report1.Antardasha.number === 5 ? 'commercial expansion & stability' : 'learning & structural alignment'}. Year ${compareYear2} shifts into ${report2.Antardasha.planet} energy, accelerating ${report2.Antardasha.number === 6 ? 'financial & relationship opportunities' : 'focus & major transformations'}.`
+          );
+        }
       }
     } catch (err: any) {
-      setCompareAnalysis(`Year comparison complete. Compare Year ${compareYear1} vs Year ${compareYear2} in report tabs.`);
+      const clientCompareText = await callClientGeminiCompare(compareYear1, compareYear2);
+      setCompareAnalysis(clientCompareText || `Year comparison complete. Compare Year ${compareYear1} vs Year ${compareYear2} in report tabs.`);
     } finally {
       setIsComparing(false);
     }
@@ -473,20 +616,26 @@ export function EklavyaAiChatModal({
         const data = await res.json();
         setFinderAnalysis(data.analysis || 'Timeline analysis generated.');
       } else {
-        const reports = Array.from({ length: 10 }, (_, i) => generateYearReport(details, selectedYear + i));
-        const primeYear = reports.find(r => r.Antardasha.number === 1 || r.Antardasha.number === 5 || r.Antardasha.number === 6) || reports[0];
+        const clientBestText = await callClientGeminiBestYear(selectedYear, selectedYear + 9, finderTopic);
+        if (clientBestText) {
+          setFinderAnalysis(clientBestText);
+        } else {
+          const reports = Array.from({ length: 10 }, (_, i) => generateYearReport(details, selectedYear + i));
+          const primeYear = reports.find(r => r.Antardasha.number === 1 || r.Antardasha.number === 5 || r.Antardasha.number === 6) || reports[0];
 
-        setFinderAnalysis(
-          `🏆 **10-Year Golden Window Analysis (${selectedYear} - ${selectedYear + 9}) for ${finderTopic}**\n\n` +
-          `• **Primary Golden Year:** **Year ${primeYear.selectedYear} (Age ${primeYear.age})**\n` +
-          `  - Active Dasha: ${primeYear.Mahadasha.planet} MD with ${primeYear.Antardasha.planet} AD\n` +
-          `  - Reason: Strong support from ${primeYear.Antardasha.planet} (${primeYear.Antardasha.number}) aligning with ${finderTopic} objectives.\n\n` +
-          `• **10-Year Dasha Sequence Breakdown:**\n` +
-          reports.map(r => `  - Year ${r.selectedYear} (Age ${r.age}): ${r.Mahadasha.planet}/${r.Antardasha.planet} - ${r.ActiveYogas.length > 0 ? r.ActiveYogas[0].name : 'Balanced'}`).join('\n')
-        );
+          setFinderAnalysis(
+            `🏆 **10-Year Golden Window Analysis (${selectedYear} - ${selectedYear + 9}) for ${finderTopic}**\n\n` +
+            `• **Primary Golden Year:** **Year ${primeYear.selectedYear} (Age ${primeYear.age})**\n` +
+            `  - Active Dasha: ${primeYear.Mahadasha.planet} MD with ${primeYear.Antardasha.planet} AD\n` +
+            `  - Reason: Strong support from ${primeYear.Antardasha.planet} (${primeYear.Antardasha.number}) aligning with ${finderTopic} objectives.\n\n` +
+            `• **10-Year Dasha Sequence Breakdown:**\n` +
+            reports.map(r => `  - Year ${r.selectedYear} (Age ${r.age}): ${r.Mahadasha.planet}/${r.Antardasha.planet} - ${r.ActiveYogas.length > 0 ? r.ActiveYogas[0].name : 'Balanced'}`).join('\n')
+          );
+        }
       }
     } catch (err: any) {
-      setFinderAnalysis(`10-Year golden window search complete.`);
+      const clientBestText = await callClientGeminiBestYear(selectedYear, selectedYear + 9, finderTopic);
+      setFinderAnalysis(clientBestText || `10-Year golden window search complete.`);
     } finally {
       setIsFindingBestYear(false);
     }
@@ -518,7 +667,23 @@ export function EklavyaAiChatModal({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Gemini API Key Toggle */}
+            <button
+              onClick={() => setShowKeyInput(!showKeyInput)}
+              className={`px-2.5 py-1 text-xs font-bold border transition flex items-center gap-1.5 cursor-pointer ${
+                getEffectiveApiKey()
+                  ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500 hover:bg-emerald-900'
+                  : 'bg-amber-950/90 text-amber-300 border-amber-500 hover:bg-amber-900 animate-pulse'
+              }`}
+              title="Configure Gemini API Key"
+            >
+              <span>🔑</span>
+              <span className="hidden sm:inline">
+                {getEffectiveApiKey() ? 'Gemini AI Active' : 'Set API Key'}
+              </span>
+            </button>
+
             {/* Year Selector */}
             <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 border border-white/20 text-xs">
               <Calendar className="w-4 h-4 text-[#d97706]" />
@@ -544,6 +709,37 @@ export function EklavyaAiChatModal({
             </button>
           </div>
         </div>
+
+        {/* API Key Management Bar */}
+        {(showKeyInput || !getEffectiveApiKey()) && (
+          <div className="bg-[#2a1b12] text-amber-100 px-4 py-2.5 border-b-2 border-[#d97706] text-xs flex flex-wrap items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-400 font-bold">⚡ Live Gemini AI Key:</span>
+              <span>
+                {getEffectiveApiKey() 
+                  ? 'Key active! Eklavya AI generates live, dynamic answers using gemini-3.6-flash.' 
+                  : 'Enter your Gemini API Key below to activate live generative AI responses.'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                type="password"
+                placeholder="Paste Gemini API Key (AIzaSy...)"
+                value={customApiKey}
+                onChange={(e) => handleSaveApiKey(e.target.value)}
+                className="bg-[#121929] text-white px-2.5 py-1 text-xs border border-amber-500/50 rounded focus:border-amber-400 outline-none w-full sm:w-64"
+              />
+              {customApiKey && (
+                <button
+                  onClick={() => handleSaveApiKey('')}
+                  className="text-amber-400 hover:text-red-400 underline text-[11px] shrink-0 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Feature Navigation Tabs */}
         <div className="bg-[#1e293b] border-b-2 border-[#3d2b1f] p-2 flex flex-wrap items-center gap-2 shrink-0">
