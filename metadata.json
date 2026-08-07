@@ -1,0 +1,8 @@
+{
+  "name": "Remix Eklavya Vedic Numerology Grid Software",
+  "description": "Professional Vedic Numerology Grid and Dasha Analysis Software with Yoga Predictions, Career Guidance, Medical Numerology, and Yearly Forecasts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

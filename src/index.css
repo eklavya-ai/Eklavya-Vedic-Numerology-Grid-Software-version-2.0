@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #f8f5f0;
+    color: #2d2d2d;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6, .font-serif {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+.geom-card {
+  background-color: #ffffff;
+  border: 1px solid #3d2b1f;
+  box-shadow: 6px 6px 0px #3d2b1f;
+}
+
+.geom-card-amber {
+  background-color: #fffcf5;
+  border: 1px solid #3d2b1f;
+  box-shadow: 6px 6px 0px #3d2b1f;
+}
+
+.geom-btn {
+  background-color: #3d2b1f;
+  color: #ffffff;
+  border: 1px solid #3d2b1f;
+  transition: all 0.2s ease;
+}
+
+.geom-btn:hover {
+  background-color: #d97706;
+}
