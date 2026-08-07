@@ -58,8 +58,8 @@ export function ProfessionView({ result }: ProfessionViewProps) {
               <CheckCircle className="w-4 h-4 text-emerald-600" /> Primary Fields
             </h4>
             <ul className="space-y-2 text-xs text-gray-700">
-              {professionGuidance.primaryFields.map((field, idx) => (
-                <li key={idx} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
+              {professionGuidance.primaryFields.map((field) => (
+                <li key={`primary-${field}`} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
                   <span className="font-medium">{field}</span>
                 </li>
@@ -72,8 +72,8 @@ export function ProfessionView({ result }: ProfessionViewProps) {
               <CheckCircle className="w-4 h-4 text-amber-600" /> Secondary Fields
             </h4>
             <ul className="space-y-2 text-xs text-gray-700">
-              {professionGuidance.secondaryFields.map((field, idx) => (
-                <li key={idx} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
+              {professionGuidance.secondaryFields.map((field) => (
+                <li key={`secondary-${field}`} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
                   <span className="font-medium">{field}</span>
                 </li>
@@ -86,8 +86,8 @@ export function ProfessionView({ result }: ProfessionViewProps) {
               <CheckCircle className="w-4 h-4 text-amber-600" /> Suitable Business
             </h4>
             <ul className="space-y-2 text-xs text-gray-700">
-              {professionGuidance.suitableBusiness.map((field, idx) => (
-                <li key={idx} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
+              {professionGuidance.suitableBusiness.map((field) => (
+                <li key={`business-${field}`} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
                   <span className="font-medium">{field}</span>
                 </li>

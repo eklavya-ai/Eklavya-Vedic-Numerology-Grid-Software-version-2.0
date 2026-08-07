@@ -48,8 +48,8 @@ export function PredictionReadingView({ result, details, onOpenReport }: Predict
             <CheckCircle className="w-4 h-4 text-emerald-600" /> Key Opportunities
           </h4>
           <ul className="space-y-2 text-xs text-gray-700">
-            {yearlyPrediction.opportunities.map((opp, idx) => (
-              <li key={idx} className="flex items-start gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+            {yearlyPrediction.opportunities.map((opp) => (
+              <li key={`opp-${opp}`} className="flex items-start gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-1.5 shrink-0"></span>
                 <span className="leading-relaxed">{opp}</span>
               </li>
@@ -62,8 +62,8 @@ export function PredictionReadingView({ result, details, onOpenReport }: Predict
             <AlertTriangle className="w-4 h-4 text-rose-600" /> Challenges & Cautions
           </h4>
           <ul className="space-y-2 text-xs text-gray-700">
-            {yearlyPrediction.challenges.map((chal, idx) => (
-              <li key={idx} className="flex items-start gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+            {yearlyPrediction.challenges.map((chal) => (
+              <li key={`chal-${chal}`} className="flex items-start gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0"></span>
                 <span className="leading-relaxed">{chal}</span>
               </li>

@@ -60,7 +60,7 @@ export function InputForm({ onGenerate, initialDetails }: InputFormProps) {
     { code: '+971', name: 'UAE (+971)' },
     { code: '+61', name: 'Australia (+61)' },
     { code: '+65', name: 'Singapore (+65)' },
-    { code: '+91', name: 'Other (+91)' }
+    { code: '+999', name: 'Other' }
   ];
 
   // Generate 135 years dropdown list (from currentYear - 130 to currentYear + 5)
@@ -308,9 +308,9 @@ export function InputForm({ onGenerate, initialDetails }: InputFormProps) {
                 onChange={(e) => setCountryCode(e.target.value)}
                 className="w-28 py-2.5 px-2 bg-white border border-[#3d2b1f] focus:outline-none focus:ring-2 focus:ring-[#d97706] text-[#3d2b1f] font-bold text-xs"
               >
-                {countryCodes.map((c, idx) => (
-                  <option key={idx} value={c.code}>
-                    {c.code}
+                {countryCodes.map((c) => (
+                  <option key={c.name} value={c.code}>
+                    {c.name}
                   </option>
                 ))}
               </select>

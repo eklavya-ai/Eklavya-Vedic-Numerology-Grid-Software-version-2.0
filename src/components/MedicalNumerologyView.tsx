@@ -27,9 +27,9 @@ export function MedicalNumerologyView({ result }: MedicalNumerologyViewProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {medicalIndications.map((ind, idx) => (
+        {medicalIndications.map((ind) => (
           <div
-            key={idx}
+            key={ind.title}
             className="bg-gradient-to-br from-gray-50 to-amber-50/40 rounded-2xl p-5 border border-amber-200/80 shadow-sm space-y-4"
           >
             <div className="flex justify-between items-center">

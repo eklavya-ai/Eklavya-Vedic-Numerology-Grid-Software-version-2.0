@@ -23,90 +23,203 @@ interface ChatMessage {
 // Client-side Vedic Answer Generator (Bulletproof fallback for Netlify static host)
 function generateRuleBasedVedicAnswer(report: YearReport, question: string): string {
   const qLower = question.toLowerCase();
-
-  // 1. Health / Neurological / Stroke / Brain / Surgery / Infection
-  if (qLower.includes('stroke') || qLower.includes('paralysis') || qLower.includes('brain') || qLower.includes('neurological') || qLower.includes('health') || qLower.includes('tumors') || qLower.includes('heart') || qLower.includes('illness') || qLower.includes('surgery') || qLower.includes('autism')) {
-    const pdText = report.Pratyantardashas.map(pd => `• PD ${pd.number} (${pd.planet}): ${pd.startDate} to ${pd.endDate}`).join('\n');
-    const yogasText = report.ActiveYogas.length > 0
-      ? report.ActiveYogas.map(y => `• **${y.name}**: ${y.description}`).join('\n')
-      : '• Balanced grid matrix with no volatile malefic combinations.';
-
-    let genderNote = '';
-    if (report.gender === 'Female') {
-      genderNote = `• Gender Specifics: As a female (${report.fullName}), focus on hormonal equilibrium, nervous system tranquility (Mercury 5), and Moon (2) emotional calmness.`;
-    } else if (report.gender === 'Male') {
-      genderNote = `• Gender Specifics: As a male (${report.fullName}), maintain blood pressure control, stress reduction, and cardiovascular care during Saturn/Rahu sub-periods.`;
-    }
-
-    return `🏥 **Vedic Health & Vibrational Analysis for ${report.fullName} (Year ${report.selectedYear}, Age ${report.age})**\n\n` +
-      `**Core Numerical Drivers:**\n` +
-      `• Basic Number (BN/Driver): **${report.BN}** | Destiny Number (DN/Conductor): **${report.DN}**\n` +
-      `• Active Mahadasha: **${report.Mahadasha.planet} (${report.Mahadasha.number})** | Antardasha: **${report.Antardasha.planet} (${report.Antardasha.number})**\n` +
-      `${genderNote}\n\n` +
-      `**Vedic Organ & Energy Signaling:**\n` +
-      `• **Mercury (5)** governs the central nervous system, brain signaling, speech pathways, and motor response. ${report.BN === 5 || report.DN === 5 || report.Mahadasha.number === 5 ? 'Mercury is strongly active in your chart.' : 'Keep Mercury energy balanced through grounding exercises.'}\n` +
-      `• **Moon (2)** governs fluid balance, mental tranquility, and circulatory rhythm.\n` +
-      `• **Saturn (8) & Rahu (4)** govern long-term structural alignment and neurological signals.\n\n` +
-      `**Exact Pratyantardasha (PD) Date Windows for ${report.selectedYear}:**\n${pdText}\n\n` +
-      `**Active Yogas Influence:**\n${yogasText}\n\n` +
-      `**Supportive Vedic Remedies:**\n` +
-      `• Consume green leafy vegetables & keep green jade or emerald near workspace.\n` +
-      `• Recite *Om Budhaya Namah* 108 times daily for nervous system strength.\n` +
-      `• Offer fresh water in silver tumbler on Mondays for mental peace.\n\n` +
-      `*Disclaimer: Vedic Numerology provides vibrational perspective and supportive timeline guidance. It is NOT a medical diagnosis or promise of cure. Always work closely with qualified physicians and medical specialists.*`;
-  }
-
-  // 2. Children / Education / Exams / School / Conception
-  if (qLower.includes('child') || qLower.includes('school') || qLower.includes('exam') || qLower.includes('education') || qLower.includes('conceiv') || qLower.includes('pregnan') || qLower.includes('birth')) {
-    const pdText = report.Pratyantardashas.map(pd => `• PD ${pd.number} (${pd.planet}): ${pd.startDate} to ${pd.endDate}`).join('\n');
-    let conceptionNote = '';
-    if (qLower.includes('conceiv') || qLower.includes('pregnan')) {
-      if (report.gender === 'Male') {
-        conceptionNote = `\n\n**Maternal & Spouse Guidance (Male Chart):**\nAs a male (${report.fullName}), your current Jupiter (${report.DN}) and Venus vibrations provide paternal support and emotional stability to your wife during conception windows.`;
-      } else {
-        conceptionNote = `\n\n**Maternal Vitality Guidance (Female Chart):**\nYour Venus (6) and Jupiter (3) cycles provide fertile energy. Focus on stress-free nutrition and emotional harmony.`;
-      }
-    }
-
-    return `👶 **Children, Education & Timeline Analysis (${report.selectedYear}, Age ${report.age})**\n\n` +
-      `• **Driver (BN): ${report.BN}** | **Conductor (DN): ${report.DN}**\n` +
-      `• **Active Mahadasha:** ${report.Mahadasha.planet} (${report.Mahadasha.number}) | **Antardasha:** ${report.Antardasha.planet} (${report.Antardasha.number})\n\n` +
-      `**Intellectual & Exam Performance Vibrations:**\n` +
-      `• **Jupiter (3)** activates wisdom, higher education, and university entrance success.\n` +
-      `• **Mercury (5)** enhances speed, competitive exam logic, memory retention, and mathematical reasoning.\n` +
-      `• **Sun (1)** grants administrative favor, government exam merit, and leadership rank.${conceptionNote}\n\n` +
-      `**Exact Pratyantardasha Date Windows:**\n${pdText}\n\n` +
-      `**Remedies for Academic & Family Growth:**\n` +
-      `• Feed green fodder to cows on Wednesdays.\n` +
-      `• Recite *Om Brim Brihaspataye Namah* on Thursdays for exam focus.`;
-  }
-
-  // 3. Career / Business / Promotion / Government / Job / Foreign / Finance
-  if (qLower.includes('job') || qLower.includes('career') || qLower.includes('promot') || qLower.includes('business') || qLower.includes('money') || qLower.includes('governm') || qLower.includes('foreign') || qLower.includes('propert') || qLower.includes('wealth')) {
-    const pdText = report.Pratyantardashas.map(pd => `• PD ${pd.number} (${pd.planet}): ${pd.startDate} to ${pd.endDate}`).join('\n');
-    const yogasText = report.ActiveYogas.map(y => `• **${y.name}**: ${y.description}`).join('\n');
-
-    return `💼 **Career, Business & Financial Timeline (${report.selectedYear}, Age ${report.age})**\n\n` +
-      `• **BN / Driver:** ${report.BN} | **DN / Conductor:** ${report.DN}\n` +
-      `• **Current Dasha Synergy:** ${report.Mahadasha.planet} Mahadasha with ${report.Antardasha.planet} Antardasha\n\n` +
-      `**Professional & Financial Trends:**\n` +
-      `• Sun (1) & Mercury (5) support authority, new contracts, and corporate growth.\n` +
-      `• Saturn (8) grants steady returns on hard work and long-term asset accumulation.\n` +
-      `• Rahu (4) / Ketu (7) open foreign trade, digital expansion, and sudden breakthroughs.\n\n` +
-      `**Active Yogas in Your Grid:**\n${yogasText || '• Balanced plane configuration'}\n\n` +
-      `**Exact Pratyantardasha (PD) Date Windows:**\n${pdText}\n\n` +
-      `**Key Action Strategy:**\n` +
-      `Leverage high-energy PD windows for launching new projects, submitting job applications, or property deals. Apply remedies for missing numbers (${report.Missing.join(', ') || 'None'}).`;
-  }
-
-  // 4. Default / General
   const pdText = report.Pratyantardashas.map(pd => `• PD ${pd.number} (${pd.planet}): ${pd.startDate} to ${pd.endDate}`).join('\n');
-  return `✨ **Vedic Numerology Insights for ${report.fullName} (Year ${report.selectedYear}, Age ${report.age})**\n\n` +
+  const yogasText = report.ActiveYogas.length > 0
+    ? report.ActiveYogas.map(y => `• **${y.name}**: ${y.description}`).join('\n')
+    : '• Balanced grid matrix with no volatile malefic combinations.';
+
+  // 1. Brain Stroke, Paralysis & Neurological Signaling
+  if (qLower.includes('stroke') || qLower.includes('paralysis') || qLower.includes('brain') || qLower.includes('neurological')) {
+    return `🏥 **Neurological Signaling & Brain Health Assessment for ${report.fullName} (Year ${report.selectedYear}, Age ${report.age})**\n\n` +
+      `**Core Grid Diagnostic:**\n` +
+      `• Basic Number (BN): **${report.BN}** | Destiny Number (DN): **${report.DN}**\n` +
+      `• Active Mahadasha: **${report.Mahadasha.planet} (${report.Mahadasha.number})** | Antardasha: **${report.Antardasha.planet} (${report.Antardasha.number})**\n\n` +
+      `**Vedic Organ & Nerve Vibration:**\n` +
+      `• **Mercury (5)** rules the brain's motor pathways, central nervous system, speech centers, and synapsis signaling. ${report.BN === 5 || report.DN === 5 || report.Mahadasha.number === 5 ? 'Mercury energy is active in your primary chart.' : 'Keep Mercury balanced through grounding routines.'}\n` +
+      `• **Saturn (8) & Rahu (4)** govern long-term structural nerves, spine, and sudden electrical impulses in the body.\n` +
+      `• **Moon (2)** governs fluid pressure and cerebral spinal fluid circulation.\n\n` +
+      `**Pratyantardasha (PD) Windows for ${report.selectedYear}:**\n${pdText}\n\n` +
+      `**Active Yogas & Balance:**\n${yogasText}\n\n` +
+      `**Supportive Vedic Remedies:**\n` +
+      `• Recite *Om Budhaya Namah* 108 times daily for nervous system equilibrium.\n` +
+      `• Wear or place Green Jade near your sleeping area.\n\n` +
+      `*Medical Disclaimer: Vedic Numerology provides vibrational perspective and supportive timeline guidance. It is NOT a medical diagnosis or promise of cure. Always consult qualified neurologists and doctors.*`;
+  }
+
+  // 2. Heart Health, Blood Pressure & Circulation
+  if (qLower.includes('heart') || qLower.includes('blood pressure') || qLower.includes('circulation')) {
+    return `❤️ **Cardiovascular & Circulation Health Trends (${report.selectedYear}, Age ${report.age})**\n\n` +
+      `• **Sun (1)** rules heart vitality, arterial rhythm, and core stamina.\n` +
+      `• **Moon (2) & Mars (9)** rule blood pressure, emotional surges, and hemoglobin levels.\n` +
+      `• Your active **${report.Mahadasha.planet} / ${report.Antardasha.planet}** dasha advises maintaining steady emotional balance and monitoring sodium intake during Mars or Sun sub-periods.\n\n` +
+      `**Pratyantardasha Windows:**\n${pdText}\n\n` +
+      `**Remedies:** Offer water to the rising Sun daily in a copper vessel; recite *Om Suryaya Namah*.`;
+  }
+
+  // 3. Rahu/Ketu/Saturn Long-term Illness, Tumors, Cancer
+  if (qLower.includes('cancer') || qLower.includes('tumor') || qLower.includes('long-term illness') || qLower.includes('rahu') || qLower.includes('ketu')) {
+    return `⚕️ **Vedic Malefic Energy & Immunity Assessment (${report.selectedYear}, Age ${report.age})**\n\n` +
+      `• **Rahu (4) & Ketu (7)** represent subtle viral energy, shadow vibrations, and unexpected cell changes.\n` +
+      `• **Saturn (8)** indicates chronic, slow-developing patterns or bone/joint alignment.\n` +
+      `• Current Mahadasha (${report.Mahadasha.planet} ${report.Mahadasha.number}) and Antardasha (${report.Antardasha.planet} ${report.Antardasha.number}) show ${report.Antardasha.number === 4 || report.Antardasha.number === 7 || report.Antardasha.number === 8 ? 'increased need for regular medical checkups and cellular detox.' : 'a protective energetic barrier against severe malefic afflictions.'}\n\n` +
+      `**PD Date Ranges:**\n${pdText}\n\n` +
+      `*Disclaimer: Consult licensed medical practitioners for health screening.*`;
+  }
+
+  // 4. Fevers, Infections, Surgeries, Accidents
+  if (qLower.includes('fever') || qLower.includes('infection') || qLower.includes('accident') || qLower.includes('surgery') || qLower.includes('injury')) {
+    return `🛡️ **Vitality & Safety Analysis (${report.selectedYear}, Age ${report.age})**\n\n` +
+      `• **Mars (9)** governs heat, fevers, blood vitality, and surgical procedures.\n` +
+      `• **Rahu (4)** rules sudden incidents or viral infections.\n` +
+      `• Exercise caution in driving and physical exertion during Mars / Rahu Pratyantardashas.\n\n` +
+      `**PD Date Ranges:**\n${pdText}\n\n` +
+      `**Remedy:** Recite Hanuman Chalisa on Tuesdays for physical protection.`;
+  }
+
+  // 5. Child Development, Autism, Speech, School
+  if (qLower.includes('autism') || qLower.includes('speech') || (qLower.includes('child') && (qLower.includes('school') || qLower.includes('develop')))) {
+    return `🧒 **Child Milestone, Speech & Academic Growth Analysis (${report.selectedYear})**\n\n` +
+      `• **Mercury (5)** governs speech clarity, vocabulary retention, and sensory processing.\n` +
+      `• **Moon (2)** governs emotional comfort, sleep, and social bonding.\n` +
+      `• **Jupiter (3)** expands cognitive learning and comprehension in school.\n\n` +
+      `**Timeline & Sub-Periods:**\n${pdText}\n\n` +
+      `**Supportive Guidance:** Keep a green clover or jade crystal near study desk; engage in rhythmic speech therapy and positive praise.`;
+  }
+
+  // 6. Pregnancy & Conceiving Favorable Months
+  if (qLower.includes('conceiv') || qLower.includes('pregnan') || qLower.includes('childbirth')) {
+    let genderNote = '';
+    if (report.gender === 'Male') {
+      genderNote = `As a male (${report.fullName}), your active Jupiter (${report.DN}) and Venus vibrations provide paternal support and stability to your spouse during conception windows.`;
+    } else {
+      genderNote = `As a female (${report.fullName}), your Venus (6) and Jupiter (3) cycles provide strong fertile energy and maternal strength.`;
+    }
+
+    return `👶 **Pregnancy & Family Growth Window (${report.selectedYear})**\n\n` +
+      `${genderNote}\n\n` +
+      `• **Jupiter (3) & Venus (6)** are the primary significators of progeny and family creation.\n` +
+      `• **Pratyantardasha Windows:**\n${pdText}\n\n` +
+      `**Remedies:** Keep yellow brass or cow ghee lamps lit on Thursdays for Jupiter's grace.`;
+  }
+
+  // 7. Government Competitive Exams & University Entrance
+  if (qLower.includes('government') || qLower.includes('entrance') || (qLower.includes('exam') && qLower.includes('competitive'))) {
+    return `🎓 **Government Exam & Entrance Merit Assessment (${report.selectedYear})**\n\n` +
+      `• **Sun (1)** rules government merit, administrative selection, authority positions, and official approval.\n` +
+      `• **Mercury (5) & Jupiter (3)** grant logical speed, memory retention, and high rank in competitive entrance tests.\n` +
+      `• Your active **${report.Mahadasha.planet} MD** and **${report.Antardasha.planet} AD** provide ${report.Antardasha.number === 1 || report.Antardasha.number === 3 || report.Antardasha.number === 5 ? 'a highly favorable window for clearing examinations with top scores.' : 'a period requiring disciplined preparation and consistency.'}\n\n` +
+      `**Key Test Date Windows (PDs):**\n${pdText}\n\n` +
+      `**Exam Remedy:** Offer water to the Sun every morning and recite *Om Aditya Namah* before exam preparation.`;
+  }
+
+  // 8. Job Promotion, Salary Increment, Authority Boost
+  if (qLower.includes('promot') || qLower.includes('salary') || qLower.includes('increment') || qLower.includes('authority')) {
+    return `📈 **Career Promotion & Increment Prospects (${report.selectedYear}, Age ${report.age})**\n\n` +
+      `• **Sun (1)** brings leadership elevation and recognition from superiors.\n` +
+      `• **Saturn (8) & Mercury (5)** deliver financial increments and contractual growth.\n` +
+      `• Your grid indicates strong potential for role expansion during Sun (1), Mercury (5), and Venus (6) Pratyantardasha cycles.\n\n` +
+      `**Favorable Action Windows:**\n${pdText}\n\n` +
+      `**Strategy:** Present performance metrics clearly to management during high-energy PD windows.`;
+  }
+
+  // 9. Job Change & Company Shift
+  if (qLower.includes('change') && (qLower.includes('job') || qLower.includes('company') || qLower.includes('shifting'))) {
+    return `🔄 **Job Change & Career Transition Analysis (${report.selectedYear})**\n\n` +
+      `• **Rahu (4) & Mercury (5)** trigger career mobility, new job offers, and company shifts.\n` +
+      `• **Jupiter (3)** ensures that job transitions lead to salary growth and professional learning.\n\n` +
+      `**Optimal Switch Windows (PDs):**\n${pdText}\n\n` +
+      `**Remedy:** Keep green cardamom in wallet on interview days for Mercury's blessing.`;
+  }
+
+  // 10. Business Startup / New Venture
+  if (qLower.includes('startup') || qLower.includes('new venture') || (qLower.includes('starting') && qLower.includes('business'))) {
+    return `🚀 **New Business Venture & Startup Feasibility (${report.selectedYear})**\n\n` +
+      `• **Mercury (5)** rules commercial trade, market expansion, and business strategy.\n` +
+      `• **Venus (6)** brings luxury branding, investor capital, and customer attraction.\n` +
+      `• Launching during Mercury (5) or Venus (6) Pratyantardasha maximizes market reception.\n\n` +
+      `**Launch Windows (PDs):**\n${pdText}`;
+  }
+
+  // 11. Business Recovery from Losses
+  if (qLower.includes('loss') || qLower.includes('recover')) {
+    return `⚖️ **Financial Recovery & Loss Reversal Strategy (${report.selectedYear})**\n\n` +
+      `• **Saturn (8)** governs debt restructuring, cost optimization, and steady recovery.\n` +
+      `• **Mercury (5)** aids renegotiation of contracts and cash flow stabilization.\n\n` +
+      `**Recovery Timeline:**\n${pdText}`;
+  }
+
+  // 12. Foreign Work, Overseas Clients, Global Trade
+  if (qLower.includes('foreign') || qLower.includes('overseas') || qLower.includes('global') || qLower.includes('visa')) {
+    return `✈️ **Foreign Work, Overseas Clients & Global Trade (${report.selectedYear})**\n\n` +
+      `• **Rahu (4) & Ketu (7)** represent international travel, foreign client contracts, and cross-border trade.\n` +
+      `• **Moon (2)** rules overseas voyages and water-crossing travel.\n\n` +
+      `**Foreign Window (PDs):**\n${pdText}`;
+  }
+
+  // 13. Marriage & Life Partner
+  if (qLower.includes('marri') || qLower.includes('life partner')) {
+    return `💍 **Marriage & Life Partner Timing Analysis (${report.selectedYear})**\n\n` +
+      `• **Venus (6)** is the primary planet of marital harmony, love, and life partnership.\n` +
+      `• **Moon (2) & Jupiter (3)** bring emotional compatibility, family approval, and auspicious ceremonies.\n\n` +
+      `**Auspicious Marriage Windows (PDs):**\n${pdText}`;
+  }
+
+  // 14. Relationships, Proposals & Compatibility
+  if (qLower.includes('proposal') || qLower.includes('love') || qLower.includes('relationship') || qLower.includes('situationship')) {
+    return `💕 **Relationship & Proposal Acceptance Trends (${report.selectedYear})**\n\n` +
+      `• **Venus (6) & Moon (2)** enhance charm, romantic attraction, and emotional expression.\n` +
+      `• Proposing during Venus or Jupiter Pratyantardasha yields highest harmony.\n\n` +
+      `**Romantic Windows:**\n${pdText}`;
+  }
+
+  // 15. Marital Discord, Divorce, Family Misunderstandings
+  if (qLower.includes('divorce') || qLower.includes('discord') || qLower.includes('family misunderstanding') || qLower.includes('separation')) {
+    return `🕊️ **Family Harmony & Conflict Resolution (${report.selectedYear})**\n\n` +
+      `• **Saturn (8) & Mars (9)** can bring friction or misunderstandings if unmanaged.\n` +
+      `• **Jupiter (3) & Moon (2)** restore peace, mutual understanding, and elder advice.\n\n` +
+      `**Peace Periods (PDs):**\n${pdText}`;
+  }
+
+  // 16. Wealth Accumulation, Cash Flow & Earnings
+  if (qLower.includes('wealth') || qLower.includes('cash flow') || qLower.includes('earnings') || qLower.includes('money')) {
+    return `💰 **Wealth Accumulation & Cash Flow Report (${report.selectedYear})**\n\n` +
+      `• **Venus (6)** governs financial luxury, assets, and high revenue streams.\n` +
+      `• **Mercury (5)** ensures liquid cash flow and business profitability.\n` +
+      `• **Saturn (8)** builds long-term wealth reserves and immovable assets.\n\n` +
+      `**Wealth Windows (PDs):**\n${pdText}`;
+  }
+
+  // 17. Real Estate & Property Purchase
+  if (qLower.includes('property') || qLower.includes('real estate') || qLower.includes('land') || qLower.includes('house')) {
+    return `🏡 **Property, Land & Real Estate Acquisition (${report.selectedYear})**\n\n` +
+      `• **Mars (9)** governs land, construction, and property ownership.\n` +
+      `• **Saturn (8)** governs structural buildings and long-term real estate holdings.\n\n` +
+      `**Property Purchase Windows (PDs):**\n${pdText}`;
+  }
+
+  // 18. Stocks, Mutual Funds, Speculative Gains, Lottery
+  if (qLower.includes('stock') || qLower.includes('lottery') || qLower.includes('speculat') || qLower.includes('invest')) {
+    return `📊 **Speculative Investments & Market Trends (${report.selectedYear})**\n\n` +
+      `• **Rahu (4)** triggers sudden speculative gains or market volatility.\n` +
+      `• **Mercury (5) & Jupiter (3)** advise calculated, analytical investments rather than blind gambling.\n\n` +
+      `**Investment Timing (PDs):**\n${pdText}`;
+  }
+
+  // 19. Debt & Loan Repayment
+  if (qLower.includes('debt') || qLower.includes('loan') || qLower.includes('liability')) {
+    return `💳 **Debt Relief & Loan Repayment Timeline (${report.selectedYear})**\n\n` +
+      `• **Saturn (8) & Mars (9)** assist in structured debt settlement and clearing liabilities.\n\n` +
+      `**Repayment Windows (PDs):**\n${pdText}`;
+  }
+
+  // 20. General / Custom Query
+  return `✨ **Vedic Numerology Analysis for "${question}" (${report.selectedYear})**\n\n` +
+    `• **User:** ${report.fullName} (DOB: ${report.dob}, Age: ${report.age})\n` +
     `• **Basic Number (Driver):** ${report.BN} | **Destiny Number (Conductor):** ${report.DN}\n` +
-    `• **Mahadasha:** ${report.Mahadasha.planet} (${report.Mahadasha.number}) | **Antardasha:** ${report.Antardasha.planet} (${report.Antardasha.number})\n\n` +
+    `• **Current Dasha:** ${report.Mahadasha.planet} (${report.Mahadasha.number}) MD with ${report.Antardasha.planet} (${report.Antardasha.number}) AD\n\n` +
+    `**Active Yogas:**\n${yogasText}\n\n` +
     `**Pratyantardasha (PD) Date Ranges for ${report.selectedYear}:**\n${pdText}\n\n` +
-    `**Active Yogas:** ${report.ActiveYogas.map(y => y.name).join(', ') || 'Balanced Grid'}\n` +
-    `**Missing Number Remedies:** Focus on balancing numbers ${report.Missing.join(', ') || 'None'}.`;
+    `**Remedial Guidance:** Apply remedies for missing numbers (${report.Missing.join(', ') || 'None'}) to balance overall energy.`;
 }
 
 export function EklavyaAiChatModal({
@@ -573,9 +686,9 @@ export function EklavyaAiChatModal({
               <div className="flex items-center gap-2 overflow-x-auto pt-0.5 pb-1">
                 {categorizedTopics
                   .find(c => c.category === selectedTopicCategory)
-                  ?.questions.map((q, idx) => (
+                  ?.questions.map((q) => (
                     <button
-                      key={idx}
+                      key={`${selectedTopicCategory}-${q}`}
                       onClick={() => handleSendQuery(q)}
                       disabled={isAiLoading}
                       className="bg-white hover:bg-[#d97706] hover:text-white text-[#3d2b1f] border border-[#3d2b1f] px-2.5 py-1 text-[11px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 shadow-[2px_2px_0px_#3d2b1f]"
