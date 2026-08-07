@@ -94,7 +94,7 @@ export function InputForm({ onGenerate, initialDetails }: InputFormProps) {
     setOtpError('');
     setResendTimer(180); // Reset timer to 180 seconds (3 mins)
 
-    // Dispatch payload to backend Express API & Formspree
+    // Dispatch payload to backend Express API & Formspree Webhook
     const payload = {
       adminEmail: 'eklavyavedicnumerology@gmail.com',
       clientEmail: email.trim(),
@@ -105,19 +105,31 @@ export function InputForm({ onGenerate, initialDetails }: InputFormProps) {
     };
 
     try {
-      // 1. Call Backend Express API
+      // 1. Call Backend Express API if present
       fetch('/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }).catch(() => {});
 
-      // 2. Call Webhook / Formspree proxy
+      // 2. Call Formspree endpoint with proper headers and JSON schema
       fetch('https://formspree.io/f/xknkybdv', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(() => {});
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name: payload.clientName,
+          email: payload.clientEmail,
+          _replyto: payload.clientEmail,
+          mobile: payload.clientMobile,
+          dob: payload.dob,
+          otpCode: payload.otpCode,
+          _subject: `OTP Verification Code (${payload.otpCode}) for ${payload.clientName}`,
+          message: `Eklavya Vedic Numerology OTP Verification Code for ${payload.clientName} is: ${payload.otpCode}.\nClient DOB: ${payload.dob}\nMobile: ${payload.clientMobile}\nClient Email: ${payload.clientEmail}\nAdmin Email: ${payload.adminEmail}`
+        })
+      }).catch((err) => console.log('Formspree dispatch notice:', err));
     } catch (err) {
       console.log('OTP Dispatch Notice:', err);
     }
@@ -473,51 +485,58 @@ export function InputForm({ onGenerate, initialDetails }: InputFormProps) {
             </div>
 
             {/* Notification Badge */}
-            <div className="bg-[#fffcf5] border border-[#d97706] p-3 text-xs text-[#3d2b1f] space-y-2 mb-6">
+            <div className="bg-[#fffcf5] border border-[#d97706] p-3.5 text-xs text-[#3d2b1f] space-y-2.5 mb-6 rounded-sm">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold">Form details & OTP status:</p>
+                  <p className="font-bold text-emerald-800">OTP Dispatched via Webhook / Email:</p>
                   <p className="text-[11px] text-[#d97706] font-bold font-mono">1. Client Email: {email}</p>
                   <p className="text-[11px] text-gray-700 font-mono">2. Client Mobile: {countryCode} {mobileNumber}</p>
-                  <p className="text-[11px] text-amber-800 font-bold font-mono">3. Admin Email: eklavyavedicnumerology@gmail.com</p>
+                  <p className="text-[11px] text-amber-900 font-bold font-mono">3. Admin Email: eklavyavedicnumerology@gmail.com</p>
                 </div>
               </div>
 
-              {/* Email Trigger & Auto-fill buttons */}
+              {/* Instant Auto-fill and Email trigger buttons */}
               <div className="pt-2 border-t border-[#d97706]/30 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[11px] uppercase text-gray-700">Verification OTP Code:</span>
+                <div className="flex items-center justify-between bg-amber-50 p-2 border border-amber-200 rounded">
+                  <div>
+                    <span className="font-bold text-[11px] uppercase text-gray-800 block">Instant Verification Code:</span>
+                    <span className="text-[10px] text-gray-500">(Auto-generated for instant access)</span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setEnteredOtp(generatedOtp)}
-                    className="px-2.5 py-1 bg-[#d97706] text-white font-extrabold font-mono text-xs rounded hover:bg-[#3d2b1f] transition cursor-pointer shadow-sm"
+                    className="px-3 py-1.5 bg-[#d97706] hover:bg-[#3d2b1f] text-white font-extrabold font-mono text-xs rounded transition cursor-pointer shadow-sm flex items-center gap-1"
                     title="Click to auto-fill OTP"
                   >
-                    {generatedOtp} (Click to Auto-Fill)
+                    <span>{generatedOtp}</span>
+                    <span className="text-[10px] bg-white/20 px-1 py-0.5 rounded font-sans">Auto-Fill</span>
                   </button>
                 </div>
 
                 <div className="flex flex-col gap-1.5 pt-1 text-[11px]">
-                  <a
-                    href={`mailto:eklavyavedicnumerology@gmail.com?subject=${encodeURIComponent(`New Client Registration OTP: ${generatedOtp} - ${firstName} ${surname}`)}&body=${encodeURIComponent(`Client Name: ${firstName} ${surname}\nDOB: ${day}/${month}/${year}\nMobile: ${countryCode} ${mobileNumber}\nEmail: ${email}\nOTP Code: ${generatedOtp}`)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-center font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 py-1.5 px-2 rounded flex items-center justify-center gap-1.5 transition"
-                  >
-                    <Mail className="w-3.5 h-3.5 text-[#d97706]" />
-                    <span>Send copy to Admin (eklavyavedicnumerology@gmail.com)</span>
-                  </a>
+                  <p className="text-[10px] text-gray-600 font-medium">Or click below to open your mail app to send/verify copy:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    <a
+                      href={`mailto:${email}?subject=${encodeURIComponent(`Your Eklavya Vedic Numerology OTP: ${generatedOtp}`)}&body=${encodeURIComponent(`Dear ${firstName} ${surname},\n\nYour OTP Verification Code for Eklavya Vedic Numerology Grid Chart is: ${generatedOtp}\n\nClient DOB: ${day}/${month}/${year}\nMobile: ${countryCode} ${mobileNumber}\n\nThank you,\nEklavya Vedic Numerology Team`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-center font-bold text-[#d97706] bg-white hover:bg-amber-100 border border-amber-300 py-1.5 px-2 rounded flex items-center justify-center gap-1 transition text-[10px]"
+                    >
+                      <Mail className="w-3 h-3 text-[#d97706]" />
+                      <span>Email to Client ({email.length > 18 ? email.substring(0, 15) + '...' : email})</span>
+                    </a>
 
-                  <a
-                    href={`mailto:${email}?subject=${encodeURIComponent(`Your Eklavya Vedic Numerology Verification OTP Code: ${generatedOtp}`)}&body=${encodeURIComponent(`Dear ${firstName} ${surname},\n\nYour OTP Verification Code for Eklavya Vedic Numerology Grid Chart is: ${generatedOtp}\n\nClient DOB: ${day}/${month}/${year}\nMobile: ${countryCode} ${mobileNumber}\n\nThank you,\nEklavya Vedic Numerology Team`)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-center font-bold text-[#d97706] bg-amber-50 hover:bg-amber-100 border border-amber-300 py-1.5 px-2 rounded flex items-center justify-center gap-1.5 transition"
-                  >
-                    <Mail className="w-3.5 h-3.5 text-[#d97706]" />
-                    <span>Send copy to Client ({email})</span>
-                  </a>
+                    <a
+                      href={`mailto:eklavyavedicnumerology@gmail.com?subject=${encodeURIComponent(`New Client Registration OTP: ${generatedOtp} - ${firstName} ${surname}`)}&body=${encodeURIComponent(`Client Name: ${firstName} ${surname}\nDOB: ${day}/${month}/${year}\nMobile: ${countryCode} ${mobileNumber}\nEmail: ${email}\nOTP Code: ${generatedOtp}`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-center font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 py-1.5 px-2 rounded flex items-center justify-center gap-1 transition text-[10px]"
+                    >
+                      <Mail className="w-3 h-3 text-[#d97706]" />
+                      <span>Email to Admin</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
