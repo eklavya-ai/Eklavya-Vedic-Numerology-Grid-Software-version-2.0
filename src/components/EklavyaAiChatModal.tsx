@@ -250,6 +250,8 @@ export function EklavyaAiChatModal({
 
   const [inputQuery, setInputQuery] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isTopicsCollapsed, setIsTopicsCollapsed] = useState(false);
+  const [isContextCollapsed, setIsContextCollapsed] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
   // Compare Years State (Phase 11)
@@ -493,6 +495,9 @@ TASK:
     const textToSend = queryText || inputQuery;
     if (!textToSend.trim() || isAiLoading) return;
 
+    // Automatically collapse suggested questions box so reading area takes full height
+    setIsTopicsCollapsed(true);
+
     const userMsg: ChatMessage = {
       id: `usr_${Date.now()}`,
       sender: 'user',
@@ -642,36 +647,36 @@ TASK:
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-[#f8f5f0] border-4 border-[#3d2b1f] w-full max-w-5xl h-[92vh] flex flex-col shadow-[12px_12px_0px_#d97706] relative my-auto">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-1 sm:p-4 overflow-y-auto">
+      <div className="bg-[#f8f5f0] border-2 sm:border-4 border-[#3d2b1f] w-full max-w-5xl h-[96vh] sm:h-[92vh] flex flex-col shadow-[12px_12px_0px_#d97706] relative my-auto">
         {/* Modal Header */}
-        <div className="bg-[#121929] text-white p-4 sm:p-5 border-b-4 border-[#d97706] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="bg-[#121929] text-white p-2.5 sm:p-5 border-b-2 sm:border-b-4 border-[#d97706] flex items-center justify-between shrink-0 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
             <img
               src="/eklavya-logo.png"
               alt="Eklavya Logo"
-              className="w-10 h-10 object-contain rounded-full border border-[#d97706] bg-[#121929] p-0.5 shrink-0"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-full border border-[#d97706] bg-[#121929] p-0.5 shrink-0"
             />
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg sm:text-xl font-bold font-serif uppercase tracking-wider text-white">
-                  Eklavya AI Vedic Assistant
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="text-sm sm:text-xl font-bold font-serif uppercase tracking-wider text-white truncate">
+                  Eklavya AI Assistant
                 </h3>
-                <span className="bg-[#d97706] text-white text-[10px] font-extrabold px-2 py-0.5 uppercase tracking-widest">
+                <span className="bg-[#d97706] text-white text-[9px] sm:text-[10px] font-extrabold px-1.5 py-0.5 uppercase tracking-widest shrink-0">
                   AI EXPERT
                 </span>
               </div>
-              <p className="text-xs text-amber-300 font-medium">
+              <p className="text-[10px] sm:text-xs text-amber-300 font-medium truncate hidden sm:block">
                 Vedic Year Report Reasoning for {details.firstName} {details.surname} (DOB: {yearReport.dob})
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Gemini API Key Toggle */}
             <button
               onClick={() => setShowKeyInput(!showKeyInput)}
-              className={`px-2.5 py-1 text-xs font-bold border transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2 py-1 text-[11px] sm:text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
                 getEffectiveApiKey()
                   ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500 hover:bg-emerald-900'
                   : 'bg-amber-950/90 text-amber-300 border-amber-500 hover:bg-amber-900 animate-pulse'
@@ -685,13 +690,13 @@ TASK:
             </button>
 
             {/* Year Selector */}
-            <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 border border-white/20 text-xs">
-              <Calendar className="w-4 h-4 text-[#d97706]" />
+            <div className="flex items-center gap-1 bg-white/10 px-2 py-1 border border-white/20 text-xs">
+              <Calendar className="w-3.5 h-3.5 text-[#d97706]" />
               <span className="text-gray-300 font-bold hidden sm:inline">Selected Year:</span>
               <select
                 value={selectedYear}
                 onChange={(e) => handleYearChange(parseInt(e.target.value, 10))}
-                className="bg-[#121929] text-amber-300 font-bold px-1 py-0.5 border border-[#d97706] cursor-pointer outline-none"
+                className="bg-[#121929] text-amber-300 font-bold px-1 py-0.5 border border-[#d97706] cursor-pointer outline-none text-xs"
               >
                 {Array.from({ length: 40 }, (_, i) => currentYear - 5 + i).map(yr => (
                   <option key={yr} value={yr}>
@@ -703,128 +708,150 @@ TASK:
 
             <button
               onClick={onClose}
-              className="w-8 h-8 bg-white/10 hover:bg-[#d97706] rounded-full flex items-center justify-center text-white transition cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 bg-white/10 hover:bg-[#d97706] rounded-full flex items-center justify-center text-white transition cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
         {/* API Key Management Bar */}
-        {(showKeyInput || !getEffectiveApiKey()) && (
+        {showKeyInput ? (
           <div className="bg-[#2a1b12] text-amber-100 px-4 py-2.5 border-b-2 border-[#d97706] text-xs flex flex-wrap items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2">
-              <span className="text-amber-400 font-bold">⚡ Live Gemini AI Key:</span>
+              <span className="text-amber-400 font-bold">⚡ Live Gemini AI Status:</span>
               <span>
                 {getEffectiveApiKey() 
-                  ? 'Key active! Eklavya AI generates live, dynamic answers using gemini-3.6-flash.' 
-                  : 'Enter your Gemini API Key below to activate live generative AI responses.'}
+                  ? (customApiKey.trim() ? 'Using Custom User API Key.' : '✅ System API Key active from Netlify! All users have instant AI access.') 
+                  : '⚠️ No API Key found. Paste a key below or configure VITE_GEMINI_API_KEY in Netlify.'}
               </span>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <input
                 type="password"
-                placeholder="Paste Gemini API Key (AIzaSy...)"
+                placeholder={getEffectiveApiKey() ? "System key active (Optional custom key...)" : "Paste Gemini API Key (AIzaSy...)"}
                 value={customApiKey}
                 onChange={(e) => handleSaveApiKey(e.target.value)}
-                className="bg-[#121929] text-white px-2.5 py-1 text-xs border border-amber-500/50 rounded focus:border-amber-400 outline-none w-full sm:w-64"
+                className="bg-[#121929] text-white px-2.5 py-1 text-xs border border-amber-500/50 rounded focus:border-amber-400 outline-none w-full sm:w-64 placeholder:text-gray-400"
               />
               {customApiKey && (
                 <button
                   onClick={() => handleSaveApiKey('')}
                   className="text-amber-400 hover:text-red-400 underline text-[11px] shrink-0 cursor-pointer"
                 >
-                  Clear
+                  Clear Custom
                 </button>
               )}
             </div>
           </div>
-        )}
+        ) : !getEffectiveApiKey() ? (
+          <div className="bg-red-950/90 text-red-200 px-4 py-2 border-b-2 border-red-600 text-xs flex items-center justify-between shrink-0">
+            <span>⚠️ Gemini AI is offline. Click 🔑 to enter an API key or configure VITE_GEMINI_API_KEY in Netlify.</span>
+            <button 
+              onClick={() => setShowKeyInput(true)}
+              className="bg-red-800 hover:bg-red-700 text-white px-2 py-0.5 rounded font-bold cursor-pointer"
+            >
+              Enter Key
+            </button>
+          </div>
+        ) : null}
 
         {/* Feature Navigation Tabs */}
-        <div className="bg-[#1e293b] border-b-2 border-[#3d2b1f] p-2 flex flex-wrap items-center gap-2 shrink-0">
+        <div className="bg-[#1e293b] border-b-2 border-[#3d2b1f] p-1.5 sm:p-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto whitespace-nowrap shrink-0 scrollbar-thin">
           <button
             onClick={() => setActiveTab('chat')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer border ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer border ${
               activeTab === 'chat'
                 ? 'bg-[#d97706] text-white border-[#d97706] shadow'
                 : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20'
             }`}
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>AI Chat Assistant</span>
           </button>
 
           <button
             onClick={() => setActiveTab('compare')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer border ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer border ${
               activeTab === 'compare'
                 ? 'bg-[#d97706] text-white border-[#d97706] shadow'
                 : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20'
             }`}
           >
-            <ArrowRightLeft className="w-4 h-4" />
+            <ArrowRightLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Compare Years</span>
           </button>
 
           <button
             onClick={() => setActiveTab('bestYear')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer border ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer border ${
               activeTab === 'bestYear'
                 ? 'bg-[#d97706] text-white border-[#d97706] shadow'
                 : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20'
             }`}
           >
-            <Trophy className="w-4 h-4" />
+            <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Best Window Finder (10-Yr)</span>
           </button>
 
           <button
             onClick={() => setActiveTab('json')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer border ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer border ${
               activeTab === 'json'
                 ? 'bg-[#d97706] text-white border-[#d97706] shadow'
                 : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20'
             }`}
           >
-            <FileCode className="w-4 h-4" />
+            <FileCode className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>View Year Report JSON</span>
           </button>
         </div>
 
         {/* Tab 1: Conversational Chat */}
         {activeTab === 'chat' && (
-          <div className="flex-grow flex flex-col overflow-hidden p-4">
+          <div className="flex-grow flex flex-col overflow-hidden p-2 sm:p-4">
             {/* Context Summary Snapshot Header */}
-            <div className="bg-white border border-[#3d2b1f] p-3 mb-3 text-xs flex flex-wrap items-center justify-between gap-2 shrink-0 shadow-[2px_2px_0px_#3d2b1f]">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="font-bold text-[#3d2b1f] uppercase tracking-wider font-serif">
-                  Year {selectedYear} Context Memory:
-                </span>
-                <span className="bg-[#fffcf5] border border-[#3d2b1f]/30 px-2 py-0.5">
-                  BN: <strong className="text-[#d97706]">{yearReport.BN}</strong> | DN: <strong className="text-[#d97706]">{yearReport.DN}</strong>
-                </span>
-                <span className="bg-[#fffcf5] border border-[#3d2b1f]/30 px-2 py-0.5">
-                  MD: <strong>{yearReport.Mahadasha.planet} ({yearReport.Mahadasha.number})</strong>
-                </span>
-                <span className="bg-[#fffcf5] border border-[#3d2b1f]/30 px-2 py-0.5">
-                  AD: <strong>{yearReport.Antardasha.planet} ({yearReport.Antardasha.number})</strong>
-                </span>
-                <span className="bg-[#fffcf5] border border-[#3d2b1f]/30 px-2 py-0.5">
-                  Active Yogas: <strong>{yearReport.ActiveYogas.length}</strong>
-                </span>
+            <div className="bg-white border border-[#3d2b1f] p-2 sm:p-3 mb-2 sm:mb-3 text-xs shrink-0 shadow-[2px_2px_0px_#3d2b1f]">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-[#3d2b1f] uppercase tracking-wider font-serif text-[11px] sm:text-xs">
+                    Year {selectedYear} Context:
+                  </span>
+                  <span className="bg-[#fffcf5] border border-[#3d2b1f]/30 px-2 py-0.5 text-[11px]">
+                    BN: <strong className="text-[#d97706]">{yearReport.BN}</strong> | DN: <strong className="text-[#d97706]">{yearReport.DN}</strong>
+                  </span>
+                  {!isContextCollapsed && (
+                    <>
+                      <span className="bg-[#fffcf5] border border-[#3d2b1f]/30 px-2 py-0.5 text-[11px]">
+                        MD: <strong>{yearReport.Mahadasha.planet} ({yearReport.Mahadasha.number})</strong>
+                      </span>
+                      <span className="bg-[#fffcf5] border border-[#3d2b1f]/30 px-2 py-0.5 text-[11px] hidden sm:inline">
+                        AD: <strong>{yearReport.Antardasha.planet} ({yearReport.Antardasha.number})</strong>
+                      </span>
+                      <span className="bg-[#fffcf5] border border-[#3d2b1f]/30 px-2 py-0.5 text-[11px] hidden sm:inline">
+                        Active Yogas: <strong>{yearReport.ActiveYogas.length}</strong>
+                      </span>
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={() => setIsContextCollapsed(!isContextCollapsed)}
+                  className="text-[10px] uppercase font-bold text-[#d97706] hover:underline cursor-pointer shrink-0"
+                >
+                  {isContextCollapsed ? 'Show Details ▼' : 'Compact ▲'}
+                </button>
               </div>
             </div>
 
             {/* Chat Messages Log */}
-            <div className="flex-grow overflow-y-auto space-y-3 p-3 bg-white border border-[#3d2b1f] shadow-[inset_0px_2px_4px_rgba(0,0,0,0.05)]">
+            <div className="flex-grow flex-1 overflow-y-auto space-y-3 p-2.5 sm:p-3 bg-white border border-[#3d2b1f] shadow-[inset_0px_2px_4px_rgba(0,0,0,0.05)] min-h-[180px]">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] p-3.5 text-xs sm:text-sm leading-relaxed border ${
+                    className={`max-w-[92%] sm:max-w-[85%] p-3 sm:p-3.5 text-xs sm:text-sm leading-relaxed border ${
                       msg.sender === 'user'
                         ? 'bg-[#121929] text-white border-[#3d2b1f] shadow-[3px_3px_0px_#d97706]'
                         : 'bg-[#fffcf5] text-[#2d2d2d] border-[#3d2b1f] shadow-[3px_3px_0px_#3d2b1f]'
@@ -853,65 +880,96 @@ TASK:
             </div>
 
             {/* Categorized Suggested Topics & Questions */}
-            <div className="py-2.5 px-1 bg-[#fffcf5] border border-[#3d2b1f]/40 my-2 shrink-0 space-y-2">
-              {/* Category Pills Header */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                <span className="text-[10px] font-extrabold uppercase text-[#3d2b1f] shrink-0 font-serif mr-1">
-                  Topics:
-                </span>
-                {categorizedTopics.map((catObj) => {
-                  const isSelected = selectedTopicCategory === catObj.category;
-                  return (
-                    <button
-                      key={catObj.category}
-                      onClick={() => setSelectedTopicCategory(catObj.category)}
-                      className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider transition cursor-pointer shrink-0 border ${
-                        isSelected
-                          ? 'bg-[#121929] text-amber-300 border-[#d97706] shadow'
-                          : 'bg-white text-[#3d2b1f] border-[#3d2b1f]/30 hover:bg-amber-100'
-                      }`}
-                    >
-                      <span>{catObj.icon}</span>
-                      <span>{catObj.category}</span>
-                    </button>
-                  );
-                })}
+            {isTopicsCollapsed ? (
+              <div className="my-2 p-2 bg-[#fffcf5] border border-[#3d2b1f]/40 shrink-0 flex items-center justify-between shadow-[2px_2px_0px_#3d2b1f]">
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <span className="text-amber-700 font-bold text-xs shrink-0">💡 Suggested Topics:</span>
+                  <span className="bg-[#121929] text-amber-300 text-[10px] font-extrabold px-2 py-0.5 uppercase tracking-wider shrink-0 border border-[#d97706]">
+                    {selectedTopicCategory}
+                  </span>
+                  <span className="text-xs text-gray-600 truncate hidden sm:inline">
+                    (Click expand to select topics & questions)
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsTopicsCollapsed(false)}
+                  className="bg-[#d97706] hover:bg-amber-600 text-white font-bold px-3 py-1 text-[11px] uppercase tracking-wider transition cursor-pointer border border-[#3d2b1f] shrink-0 flex items-center gap-1 shadow-sm"
+                >
+                  <span>Expand Questions</span>
+                  <span>▲</span>
+                </button>
               </div>
+            ) : (
+              <div className="py-2 px-2 bg-[#fffcf5] border border-[#3d2b1f]/40 my-2 shrink-0 space-y-2 relative shadow-[2px_2px_0px_#3d2b1f]">
+                <div className="flex items-center justify-between gap-2 border-b border-[#3d2b1f]/20 pb-1">
+                  <span className="text-[11px] font-extrabold uppercase text-[#3d2b1f] font-serif">
+                    💡 Select a Topic & Question:
+                  </span>
+                  <button
+                    onClick={() => setIsTopicsCollapsed(true)}
+                    className="text-[#d97706] hover:text-amber-800 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Collapse Reading View</span>
+                    <span>▼</span>
+                  </button>
+                </div>
 
-              {/* Question Chips for Selected Category */}
-              <div className="flex items-center gap-2 overflow-x-auto pt-0.5 pb-1">
-                {categorizedTopics
-                  .find(c => c.category === selectedTopicCategory)
-                  ?.questions.map((q) => (
-                    <button
-                      key={`${selectedTopicCategory}-${q}`}
-                      onClick={() => handleSendQuery(q)}
-                      disabled={isAiLoading}
-                      className="bg-white hover:bg-[#d97706] hover:text-white text-[#3d2b1f] border border-[#3d2b1f] px-2.5 py-1 text-[11px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 shadow-[2px_2px_0px_#3d2b1f]"
-                    >
-                      {q}
-                    </button>
-                  ))}
+                {/* Category Pills Header */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+                  {categorizedTopics.map((catObj) => {
+                    const isSelected = selectedTopicCategory === catObj.category;
+                    return (
+                      <button
+                        key={catObj.category}
+                        onClick={() => setSelectedTopicCategory(catObj.category)}
+                        className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider transition cursor-pointer shrink-0 border ${
+                          isSelected
+                            ? 'bg-[#121929] text-amber-300 border-[#d97706] shadow'
+                            : 'bg-white text-[#3d2b1f] border-[#3d2b1f]/30 hover:bg-amber-100'
+                        }`}
+                      >
+                        <span>{catObj.icon}</span>
+                        <span>{catObj.category}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Question Chips for Selected Category */}
+                <div className="flex items-center gap-2 overflow-x-auto pt-0.5 pb-1">
+                  {categorizedTopics
+                    .find(c => c.category === selectedTopicCategory)
+                    ?.questions.map((q) => (
+                      <button
+                        key={`${selectedTopicCategory}-${q}`}
+                        onClick={() => handleSendQuery(q)}
+                        disabled={isAiLoading}
+                        className="bg-white hover:bg-[#d97706] hover:text-white text-[#3d2b1f] border border-[#3d2b1f] px-2.5 py-1 text-[11px] font-bold whitespace-nowrap transition cursor-pointer shrink-0 shadow-[2px_2px_0px_#3d2b1f]"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Input Bar */}
-            <div className="mt-2 flex items-center gap-2 shrink-0">
+            <div className="mt-1 sm:mt-2 flex items-center gap-2 shrink-0">
               <input
                 type="text"
                 value={inputQuery}
                 onChange={(e) => setInputQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendQuery()}
                 placeholder={`Ask Eklavya AI about career, marriage, health, remedies in Year ${selectedYear}...`}
-                className="flex-grow bg-white border-2 border-[#3d2b1f] px-4 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:border-[#d97706] shadow-[2px_2px_0px_#3d2b1f]"
+                className="flex-grow bg-white border-2 border-[#3d2b1f] px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:border-[#d97706] shadow-[2px_2px_0px_#3d2b1f]"
               />
               <button
                 onClick={() => handleSendQuery()}
                 disabled={isAiLoading || !inputQuery.trim()}
-                className="bg-[#d97706] hover:bg-amber-600 disabled:bg-gray-400 text-white font-bold px-5 py-2.5 text-xs uppercase tracking-wider flex items-center gap-2 transition cursor-pointer border border-[#3d2b1f] shadow-[2px_2px_0px_#3d2b1f]"
+                className="bg-[#d97706] hover:bg-amber-600 disabled:bg-gray-400 text-white font-bold px-3 py-2 sm:px-5 sm:py-2.5 text-xs uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 transition cursor-pointer border border-[#3d2b1f] shadow-[2px_2px_0px_#3d2b1f] shrink-0"
               >
                 <span>Ask AI</span>
-                <Send className="w-4 h-4" />
+                <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
