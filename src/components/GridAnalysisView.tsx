@@ -23,15 +23,20 @@ export function GridAnalysisView({ result, details, onUpdateTargetYear }: GridAn
     targetGridCounts,
     ageInTargetYear,
     mahadasha,
-    antardasha
+    antardasha,
+    pratyantardashaList
   } = result;
 
   const rawDobDigits = getRawDobDigits(details.day, details.month, details.year);
 
+  // Selected PD item details (1-indexed for PD1 to PD9)
+  const selectedPDItem = selectedPD > 0 && pratyantardashaList[selectedPD - 1] ? pratyantardashaList[selectedPD - 1] : null;
+  const selectedPDNum = selectedPDItem ? selectedPDItem.number : 0;
+
   // Active grid counts incorporating selected PD (Pratyantardasha)
   const activeGridCounts = { ...targetGridCounts };
-  if (selectedPD > 0) {
-    activeGridCounts[selectedPD] = (activeGridCounts[selectedPD] || 0) + 1;
+  if (selectedPDNum > 0) {
+    activeGridCounts[selectedPDNum] = (activeGridCounts[selectedPDNum] || 0) + 1;
   }
 
   const activeMissingNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(
@@ -216,18 +221,39 @@ export function GridAnalysisView({ result, details, onUpdateTargetYear }: GridAn
               className="bg-white border border-[#3d2b1f] px-2 py-1 text-xs font-extrabold text-[#3d2b1f] focus:outline-none focus:ring-2 focus:ring-[#d97706]"
             >
               <option value={0}>Default (No PD in Grid)</option>
-              <option value={1}>PD-1 (Sun)</option>
-              <option value={2}>PD-2 (Moon)</option>
-              <option value={3}>PD-3 (Jupiter)</option>
-              <option value={4}>PD-4 (Rahu)</option>
-              <option value={5}>PD-5 (Mercury)</option>
-              <option value={6}>PD-6 (Venus)</option>
-              <option value={7}>PD-7 (Ketu)</option>
-              <option value={8}>PD-8 (Saturn)</option>
-              <option value={9}>PD-9 (Mars)</option>
+              {pratyantardashaList.map((pd) => (
+                <option key={pd.index} value={pd.index}>
+                  PD-{pd.index}: No. {pd.number} ({pd.planet}) – {pd.durationDays} Days ({pd.startDate} to {pd.endDate})
+                </option>
+              ))}
             </select>
           </div>
         </div>
+
+        {/* Selected PD Active Banner with Start Date & End Date for Selected Year */}
+        {selectedPDItem ? (
+          <div className="mb-6 p-3.5 bg-[#fffcf5] border-2 border-[#d97706] text-xs font-bold text-[#3d2b1f] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[2px_2px_0px_#3d2b1f]">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 bg-[#3d2b1f] text-white font-extrabold rounded-xs text-[10px] uppercase">
+                Active Test PD #{selectedPDItem.index}
+              </span>
+              <span>
+                Planet: <strong className="text-[#3d2b1f] font-serif">{selectedPDItem.planet}</strong> (Number <strong className="text-[#d97706] text-sm font-serif">{selectedPDItem.number}</strong>)
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-800">
+              <span>Start Date: <strong className="underline text-[#3d2b1f]">{selectedPDItem.startDate}</strong></span>
+              <span>End Date: <strong className="underline text-[#3d2b1f]">{selectedPDItem.endDate}</strong></span>
+              <span className="bg-[#3d2b1f] text-[#d97706] px-2 py-0.5 font-extrabold text-[10px] uppercase">
+                Duration: {selectedPDItem.durationDays} Days ({details.targetYear})
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-6 p-2.5 bg-[#fffcf5] border border-[#3d2b1f]/20 text-xs text-gray-600 font-medium">
+            💡 <strong>Default View:</strong> No Pratyantardasha (PD) added to grid. Select a PD sub-period from the dropdown above to test its number vibration in the 3x3 Grid and view exact active date ranges.
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
           {/* 3x3 Grid Visual */}
@@ -248,7 +274,7 @@ export function GridAnalysisView({ result, details, onUpdateTargetYear }: GridAn
                   AD-{ageInTargetYear > 0 ? antardasha.number : '_'}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-300 shadow-sm">
-                  PD-{selectedPD > 0 ? selectedPD : 'None'}
+                  PD-{selectedPDNum > 0 ? selectedPDNum : 'None'}
                 </span>
               </div>
 
@@ -260,7 +286,7 @@ export function GridAnalysisView({ result, details, onUpdateTargetYear }: GridAn
                   const hasDN = destinyNumber === num;
                   const hasMD = ageInTargetYear > 0 && mahadasha.number === num;
                   const hasAD = ageInTargetYear > 0 && antardasha.number === num;
-                  const hasPD = selectedPD > 0 && selectedPD === num;
+                  const hasPD = selectedPDNum > 0 && selectedPDNum === num;
 
                   const cellTotalCount =
                     rawDobCount +
@@ -325,7 +351,7 @@ export function GridAnalysisView({ result, details, onUpdateTargetYear }: GridAn
                             )}
                             {hasPD && (
                               <span className="px-1.5 py-0.5 text-xs font-extrabold rounded bg-purple-100 text-purple-700 border border-purple-300 shadow-sm">
-                                PD-{selectedPD}
+                                PD-{selectedPDNum}
                               </span>
                             )}
                           </>

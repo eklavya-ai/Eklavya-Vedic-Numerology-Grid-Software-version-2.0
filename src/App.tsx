@@ -269,6 +269,43 @@ export default function App() {
         details={details}
         onUpdateDetails={(newDetails) => handleGenerate(newDetails)}
       />
+
+      {/* Floating Gemini AI Chatbot Button (Bottom Right Corner) */}
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 print:hidden">
+        {/* Tooltip Badge */}
+        <div className="hidden sm:flex items-center gap-2 bg-[#121929] text-white text-xs font-bold px-3 py-1.5 rounded-full border border-cyan-400 shadow-xl animate-pulse">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="text-cyan-300">Eklavya AI Active</span>
+          <span className="text-gray-400">• Click to Chat</span>
+        </div>
+
+        <button
+          onClick={() => setIsAiChatOpen(true)}
+          className="relative group flex items-center justify-center cursor-pointer focus:outline-none"
+          title="Open Eklavya Gemini AI Assistant"
+        >
+          {/* Animated Glowing Outer Ring */}
+          <div className="absolute -inset-1.5 bg-gradient-to-r from-cyan-500 via-emerald-500 to-amber-500 rounded-full blur opacity-80 group-hover:opacity-100 transition duration-300 animate-pulse"></div>
+
+          {/* Button Container */}
+          <div className="relative w-14 h-14 bg-[#121929] rounded-full p-1 border-2 border-cyan-400 shadow-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
+            <img
+              src="/gemini-ai-button.png"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/eklavya-logo.png';
+              }}
+              alt="Eklavya Gemini AI"
+              className="w-full h-full object-cover rounded-full"
+            />
+
+            {/* Active Indicator Pulse Dot */}
+            <span className="absolute top-0 right-0 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-cyan-500 border-2 border-[#121929]"></span>
+            </span>
+          </div>
+        </button>
+      </div>
     </div>
   );
 }
