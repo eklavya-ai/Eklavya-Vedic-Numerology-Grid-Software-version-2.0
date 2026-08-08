@@ -388,9 +388,9 @@ export function EklavyaAiChatModal({
     const apiKey = getEffectiveApiKey();
     if (!apiKey) return null;
 
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const contextPrompt = `
+    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash'];
+    const ai = new GoogleGenAI({ apiKey });
+    const contextPrompt = `
 You are Eklavya AI, an expert master in Vedic Grid Numerology (3x3 Grid Matrix, Mahadasha, Antardasha, Pratyantardasha, Yogas, and Remedies).
 
 SUPPLIED YEAR REPORT DATA FOR USER (${report.fullName}, DOB: ${report.dob}, Target Year: ${report.selectedYear}, Age: ${report.age}):
@@ -404,28 +404,32 @@ USER QUESTION:
 Provide a natural, insightful, date-specific, and accurate Eklavya AI Vedic Numerology response based on the supplied Year Report. Always include exact Pratyantardasha (PD) start and end dates when discussing timing. Include medical disclaimers if asking about health/children.
 `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: contextPrompt
-      });
-
-      return response.text || null;
-    } catch (err) {
-      console.warn('Client-side Gemini AI call failed:', err);
-      return null;
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: contextPrompt
+        });
+        if (response.text) {
+          return response.text;
+        }
+      } catch (err: any) {
+        console.warn(`Client-side Gemini AI (${modelName}) failed, trying next model candidate:`, err?.message || err);
+      }
     }
+    return null;
   };
 
   const callClientGeminiCompare = async (year1: number, year2: number): Promise<string | null> => {
     const apiKey = getEffectiveApiKey();
     if (!apiKey) return null;
 
-    try {
-      const report1 = generateYearReport(details, year1);
-      const report2 = generateYearReport(details, year2);
-      const ai = new GoogleGenAI({ apiKey });
+    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash'];
+    const report1 = generateYearReport(details, year1);
+    const report2 = generateYearReport(details, year2);
+    const ai = new GoogleGenAI({ apiKey });
 
-      const comparePrompt = `
+    const comparePrompt = `
 You are Eklavya AI, an expert master in Vedic Grid Numerology.
 Compare two distinct numerology years for ${details.firstName} ${details.surname}:
 YEAR 1 (${year1}):
@@ -442,30 +446,34 @@ TASK:
 Provide a comprehensive comparative synthesis comparing Year ${year1} vs Year ${year2} across Career, Finance, Property, Relationships, and Strategic Recommendations.
 `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: comparePrompt
-      });
-
-      return response.text || null;
-    } catch (err) {
-      console.warn('Client-side Gemini compare failed:', err);
-      return null;
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: comparePrompt
+        });
+        if (response.text) {
+          return response.text;
+        }
+      } catch (err: any) {
+        console.warn(`Client-side Gemini compare (${modelName}) failed:`, err?.message || err);
+      }
     }
+    return null;
   };
 
   const callClientGeminiBestYear = async (startYear: number, endYear: number, topic: string): Promise<string | null> => {
     const apiKey = getEffectiveApiKey();
     if (!apiKey) return null;
 
-    try {
-      const yearReports: YearReport[] = [];
-      for (let yr = startYear; yr <= endYear; yr++) {
-        yearReports.push(generateYearReport(details, yr));
-      }
-      const ai = new GoogleGenAI({ apiKey });
+    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash'];
+    const yearReports: YearReport[] = [];
+    for (let yr = startYear; yr <= endYear; yr++) {
+      yearReports.push(generateYearReport(details, yr));
+    }
+    const ai = new GoogleGenAI({ apiKey });
 
-      const windowPrompt = `
+    const windowPrompt = `
 You are Eklavya AI, an expert master in Vedic Grid Numerology.
 Analyze the 10-year timeline (${startYear} to ${endYear}) for ${details.firstName} ${details.surname} specifically for topic: "${topic}".
 
@@ -479,16 +487,20 @@ TASK:
 2. Rank the top years with clear Vedic rationale.
 `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: windowPrompt
-      });
-
-      return response.text || null;
-    } catch (err) {
-      console.warn('Client-side Gemini best year failed:', err);
-      return null;
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: windowPrompt
+        });
+        if (response.text) {
+          return response.text;
+        }
+      } catch (err: any) {
+        console.warn(`Client-side Gemini best year (${modelName}) failed:`, err?.message || err);
+      }
     }
+    return null;
   };
 
   const handleSendQuery = async (queryText?: string) => {

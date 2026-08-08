@@ -29,6 +29,26 @@ function getGenAIClient(): GoogleGenAI {
   });
 }
 
+// Resilient Gemini model generator with fallback model sequence
+async function generateGeminiContent(ai: GoogleGenAI, prompt: string): Promise<string> {
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash'];
+  let lastErr: any = null;
+
+  for (const modelName of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt
+      });
+      if (response.text) return response.text;
+    } catch (err: any) {
+      console.warn(`Server Gemini model ${modelName} failed, trying next candidate:`, err?.message || err);
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('All Gemini model candidates failed.');
+}
+
 // System Prompt definition according to Phase 6 requirements
 const EKLAVYA_SYSTEM_PROMPT = `
 You are Eklavya AI, an expert master in Vedic Grid Numerology (3x3 Grid Matrix, Mahadasha, Antardasha, Pratyantardasha, Yogas, and Remedies).
@@ -92,14 +112,11 @@ USER QUESTION:
 Provide a natural, insightful, and accurate Eklavya AI Vedic Numerology response based ONLY on the supplied Year Report.
 `;
 
-    // Make call to Gemini using gemini-3.6-flash
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: contextPrompt
-    });
+    // Make call to Gemini using resilient fallback sequence
+    const answerText = await generateGeminiContent(ai, contextPrompt);
 
     res.json({
-      answer: response.text || 'Unable to analyze year report at this moment.'
+      answer: answerText || 'Unable to analyze year report at this moment.'
     });
   } catch (error: any) {
     console.error('Eklavya AI Chat Error:', error);
@@ -153,15 +170,12 @@ Provide a comparative synthesis comparing Year ${year1} vs Year ${year2} across:
 Use clear headers or bullet points.
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: comparePrompt
-    });
+    const analysisText = await generateGeminiContent(ai, comparePrompt);
 
     res.json({
       report1,
       report2,
-      analysis: response.text || 'Comparison completed successfully.'
+      analysis: analysisText || 'Comparison completed successfully.'
     });
   } catch (error: any) {
     console.error('Compare Years Error:', error);
@@ -214,16 +228,13 @@ TASK:
 3. Provide a clear summary guidance for taking action during these golden years.
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: windowPrompt
-    });
+    const windowAnalysis = await generateGeminiContent(ai, windowPrompt);
 
     res.json({
       startYear,
       endYear,
       topic,
-      analysis: response.text || 'Timeline analysis generated successfully.',
+      analysis: windowAnalysis || 'Timeline analysis generated successfully.',
       reports: yearReports
     });
   } catch (error: any) {
