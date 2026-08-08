@@ -29,9 +29,9 @@ function getGenAIClient(): GoogleGenAI {
   });
 }
 
-// Resilient Gemini model generator with fallback model sequence
+// Resilient Gemini model generator with official supported models
 async function generateGeminiContent(ai: GoogleGenAI, prompt: string): Promise<string> {
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash'];
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-3.1-pro-preview'];
   let lastErr: any = null;
 
   for (const modelName of modelsToTry) {

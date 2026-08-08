@@ -388,7 +388,7 @@ export function EklavyaAiChatModal({
     const apiKey = getEffectiveApiKey();
     if (!apiKey) return null;
 
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash'];
+    const modelsToTry = ['gemini-3.6-flash', 'gemini-3.1-pro-preview'];
     const ai = new GoogleGenAI({ apiKey });
     const contextPrompt = `
 You are Eklavya AI, an expert master in Vedic Grid Numerology (3x3 Grid Matrix, Mahadasha, Antardasha, Pratyantardasha, Yogas, and Remedies).
@@ -424,7 +424,7 @@ Provide a natural, insightful, date-specific, and accurate Eklavya AI Vedic Nume
     const apiKey = getEffectiveApiKey();
     if (!apiKey) return null;
 
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash'];
+    const modelsToTry = ['gemini-3.6-flash', 'gemini-3.1-pro-preview'];
     const report1 = generateYearReport(details, year1);
     const report2 = generateYearReport(details, year2);
     const ai = new GoogleGenAI({ apiKey });
@@ -466,7 +466,7 @@ Provide a comprehensive comparative synthesis comparing Year ${year1} vs Year ${
     const apiKey = getEffectiveApiKey();
     if (!apiKey) return null;
 
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.6-flash'];
+    const modelsToTry = ['gemini-3.6-flash', 'gemini-3.1-pro-preview'];
     const yearReports: YearReport[] = [];
     for (let yr = startYear; yr <= endYear; yr++) {
       yearReports.push(generateYearReport(details, yr));
@@ -734,8 +734,8 @@ TASK:
               <span className="text-amber-400 font-bold">⚡ Live Gemini AI Status:</span>
               <span>
                 {getEffectiveApiKey() 
-                  ? (customApiKey.trim() ? 'Using Custom User API Key.' : '✅ System API Key active from Netlify! All users have instant AI access.') 
-                  : '⚠️ No API Key found. Paste a key below or configure VITE_GEMINI_API_KEY in Netlify.'}
+                  ? (customApiKey.trim() ? 'Using Custom User API Key.' : '✅ System API Key active! All users have instant AI access.') 
+                  : '⚠️ No API Key found. Paste a key below or set GEMINI_API_KEY environment variable.'}
               </span>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -758,7 +758,7 @@ TASK:
           </div>
         ) : !getEffectiveApiKey() ? (
           <div className="bg-red-950/90 text-red-200 px-4 py-2 border-b-2 border-red-600 text-xs flex items-center justify-between shrink-0">
-            <span>⚠️ Gemini AI is offline. Click 🔑 to enter an API key or configure VITE_GEMINI_API_KEY in Netlify.</span>
+            <span>⚠️ Gemini AI is offline. Click 🔑 to enter an API key or configure GEMINI_API_KEY environment variable.</span>
             <button 
               onClick={() => setShowKeyInput(true)}
               className="bg-red-800 hover:bg-red-700 text-white px-2 py-0.5 rounded font-bold cursor-pointer"
